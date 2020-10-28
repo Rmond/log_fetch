@@ -2,7 +2,7 @@
 import json,os,sys
 
 from flask import Flask
-from flask import request,render_template,redirect,session
+from flask import request,render_template,redirect,session,send_from_directory
 
 app = Flask(__name__)
 
@@ -43,8 +43,10 @@ def index():
         host_info = request.get_json()
         shell='ansible -i hosts '+host_info["host"]+' -m fetch -a "src='+host_info["file_path"]+' dest=/tmp/"'
         result = os.popen(shell).read()
-        print(json.dumps(result.split("=>")))
-        return result
+        res_dic = json.loads(result.split("=>")[1])
+        print(res_dic)
+        local_path,filename = os.path.split(res_dic["dest"])
+        return send_from_directory(local_path, filename=filename, as_attachment=True)
     else:
         for user in config["info"]:
             if user["username"] == session["username"]:
