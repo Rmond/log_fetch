@@ -1,0 +1,6 @@
+{
+ "info": [
+     {"username":"test01","password":"test","hosts":["9.0.100.106","9.0.100.105"]},
+     {"username":"test02","password":"test","hosts":["9.0.100.106"]}
+ ]
+}

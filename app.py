@@ -1,12 +1,66 @@
+import json,os,sys
+import base64
+
 from flask import Flask
+from flask import request,render_template,redirect,session
 
 app = Flask(__name__)
 
+def login_check(func):#登录检查装饰器
+    def wrapper(*args,**kwargs):
+        username = session.get('username',None)
+        if not username:
+            return redirect('/')
+        return func(*args,**kwargs)
+    return wrapper
 
-@app.route('/')
-def hello_world():
-    return 'Hello World!'
+def authenticate(username,password):
+    for user in config["info"]:
+        if user["username"] == username:
+            if user["password"] == password:  # 登录判断
+                return user
+            else:  # 判断密码是否正确
+                return None
+    return None
 
+@app.route('/', methods=['POST', 'GET'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        user = authenticate(username,password)
+        if user:
+            session['username'] = user['username']
+            return redirect('/index')
+        else:#判断密码是否正确
+            return render_template("login.html",msg='用户名或密码错误')
+    return render_template("login.html")
+
+@app.route('/index', methods=['POST', 'GET'])
+@login_check
+def index():
+    if request.method == 'POST':
+        host_info = request.get_json()
+        print(type(host_info))
+        return 'success'
+    else:
+        for user in config["info"]:
+            if user["username"] == session["username"]:
+                hosts = user["hosts"]
+        return render_template("index.html", hosts=hosts)
+
+
+@app.route('/hostlist', methods=['POST', 'GET'])
+def host_list():
+    return json.dumps(config)
 
 if __name__ == '__main__':
-    app.run()
+    conf_file = "config.json"
+    if os.path.isfile(conf_file):
+        with open(conf_file) as config_file:
+            config = json.load(config_file)
+        app.config["SECRET_KEY"] = 'TPmi4aLWRbyVq8zu9v82dWYW1'
+        app.run(host='0.0.0.0', port=5000)
+    else:
+        print('Config file not exist!')
+        sys.exit(0)
