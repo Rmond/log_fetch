@@ -41,18 +41,14 @@ def login():
 def index():
     if request.method == 'POST':
         host_info = request.get_json()
-        print(type(host_info))
-        return 'success'
+        shell='ansible -i hosts '+host_info["host"]+' -m fetch -a src='+host_info["file_path"]+' dest=/tmp/'
+        result = os.popen(shell).read()
+        return result
     else:
         for user in config["info"]:
             if user["username"] == session["username"]:
                 hosts = user["hosts"]
         return render_template("index.html", hosts=hosts)
-
-
-@app.route('/hostlist', methods=['POST', 'GET'])
-def host_list():
-    return json.dumps(config)
 
 if __name__ == '__main__':
     conf_file = "config.json"
