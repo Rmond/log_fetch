@@ -41,9 +41,10 @@ def login():
 def index():
     if request.method == 'POST':
         host_info = request.get_json()
-        shell='ansible -i hosts '+host_info["host"]+' -m fetch -a src='+host_info["file_path"]+' dest=/tmp/'
+        shell='ansible -i hosts '+host_info["host"]+' -m fetch -a "src='+host_info["file_path"]+' dest=/tmp/"'
+        print(shell)
         result = os.popen(shell).read()
-        return result
+        return shell
     else:
         for user in config["info"]:
             if user["username"] == session["username"]:
