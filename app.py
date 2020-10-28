@@ -33,7 +33,7 @@ def login():
             session['username'] = user['username']
             return redirect('/index')
         else:#判断密码是否正确
-            return render_template("login.html",msg='用户名或密码错误')
+            return render_template("login.html",msg=u'用户名或密码错误')
     return render_template("login.html")
 
 @app.route('/index', methods=['POST', 'GET'])
