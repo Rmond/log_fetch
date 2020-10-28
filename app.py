@@ -43,7 +43,7 @@ def index():
         host_info = request.get_json()
         shell='ansible -i hosts '+host_info["host"]+' -m fetch -a "src='+host_info["file_path"]+' dest=/tmp/"'
         result = os.popen(shell).read()
-        print(result)
+        print(json.loads(result.split("=>")))
         return result
     else:
         for user in config["info"]:
