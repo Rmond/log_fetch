@@ -1,5 +1,5 @@
+# encoding: utf-8
 import json,os,sys
-import base64
 
 from flask import Flask
 from flask import request,render_template,redirect,session
