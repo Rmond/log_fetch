@@ -40,13 +40,15 @@ def login():
 @login_check
 def index():
     if request.method == 'POST':
-        host_info = request.get_json()
-        shell='ansible -i hosts '+host_info["host"]+' -m fetch -a "src='+host_info["file_path"]+' dest=/tmp/"'
+        host = request.form["host"]
+        file_path = request.form["file_path"]
+        shell='ansible -i hosts '+host+' -m fetch -a "src='+file_path+' dest=/tmp/"'
         result = os.popen(shell).read()
         res_dic = json.loads(result.split("=>")[1])
         print(res_dic)
         local_path,filename = os.path.split(res_dic["dest"])
         return send_from_directory(local_path, filename=filename, as_attachment=True)
+        #return host_info
     else:
         for user in config["info"]:
             if user["username"] == session["username"]:

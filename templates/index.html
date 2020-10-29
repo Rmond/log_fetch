@@ -34,7 +34,7 @@
 			<div class="panel-body">
 				<div class="row">
 					<div class="col-lg-8 col-lg-offset-1">
-						<form id="install" class="form-horizontal">
+						<form id="install" method="post" id="install" action="/index" class="form-horizontal">
 						<div class="form-group">
 								<label for="file_path" class="col-md-4 control-label">文件路径</label>
 								 <div class="col-md-6">
@@ -50,13 +50,13 @@
                                 </select>
                              </div>
                         </div>
-						</form>
                         <div class="form-group">
 							<div class="col-md-6 col-md-offset-6">
-								<button class="btn btn-default" id="download">下载</button>
+								<button class="btn btn-default">下载</button>
 							</div>
                         </div>
-					</div>
+					    </div>
+						</form>
 					<!-- /.col-lg-6 (nested) -->
 				</div>
 				<!-- /.row (nested) -->
@@ -79,6 +79,12 @@
 $(function(){
     //jquery.validate
 	$("#install").validate({
+        submitHandler: function() {
+			//验证通过后 的js代码写在这里
+			//alert("提交事件!");
+			form.submit();
+			//debug:true
+		},
 		onfocusout: function(element) { $(element).valid(); }
 	});
     $("#download").click( function () {
