@@ -44,7 +44,7 @@ def index():
         file_path = request.form["file_path"]
         shell='ansible -i hosts '+host+' -m fetch -a "src='+file_path+' dest=/tmp/"'
         result = os.popen(shell).read().split("=>")
-        print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+"-->"+session['username']+"download file:"+file_path)
+        print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+"-->"+session['username']+" download file:"+file_path)
         res_flag = result[0]
         if "FAILED" in res_flag:
             return "file not found！"
