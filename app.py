@@ -5,6 +5,15 @@ from flask import Flask
 from flask import request,render_template,redirect,session,send_from_directory
 
 app = Flask(__name__)
+app.config["SECRET_KEY"] = 'TPmi4aLWRbyVq8zu9v82dWYW1'
+conf_file = "config.json"
+if os.path.isfile(conf_file):
+    with open(conf_file) as config_file:
+        config = json.load(config_file)
+else:
+    print('Config file not exist!')
+    sys.exit(0)
+
 
 def login_check(func):#登录检查装饰器
     def wrapper(*args,**kwargs):
