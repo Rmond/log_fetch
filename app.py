@@ -1,5 +1,5 @@
 # encoding: utf-8
-import json,os,sys
+import json,os,sys,datetime
 
 from flask import Flask
 from flask import request,render_template,redirect,session,send_from_directory
@@ -43,11 +43,15 @@ def index():
         host = request.form["host"]
         file_path = request.form["file_path"]
         shell='ansible -i hosts '+host+' -m fetch -a "src='+file_path+' dest=/tmp/"'
-        result = os.popen(shell).read()
-        res_dic = json.loads(result.split("=>")[1])
-        print(res_dic)
-        local_path,filename = os.path.split(res_dic["dest"])
-        return send_from_directory(local_path, filename=filename, as_attachment=True)
+        result = os.popen(shell).read().split("=>")
+        print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+"-->"+session['username']+"download file:"+file_path)
+        res_flag = result[0]
+        if "FAILED" in res_flag:
+            return "file not found！"
+        else:
+            res_stdout = json.loads(result[1])
+            local_path,filename = os.path.split(res_dic["dest"])
+            return send_from_directory(local_path, filename=filename, as_attachment=True)
         #return host_info
     else:
         for user in config["info"]:
