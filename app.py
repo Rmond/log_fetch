@@ -50,7 +50,7 @@ def index():
             return "file not found！"
         else:
             res_stdout = json.loads(result[1])
-            local_path,filename = os.path.split(res_dic["dest"])
+            local_path,filename = os.path.split(res_stdout["dest"])
             return send_from_directory(local_path, filename=filename, as_attachment=True)
         #return host_info
     else:
