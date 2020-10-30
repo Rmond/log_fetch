@@ -1,6 +1,1 @@
-{
- "info": [
-     {"username":"test01","password":"test","active":true,"hosts":["9.0.135.106","9.0.135.105"]},
-     {"username":"test02","password":"test","active":true,"hosts":["9.0.135.106"]}
- ]
-}
+{"info": [{"username": "test01", "password": "test", "active": true, "hosts": ["9.0.135.106", "9.0.135.105"]}, {"username": "test02", "password": "test", "active": true, "hosts": ["9.0.135.106"]}]}

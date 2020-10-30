@@ -108,8 +108,9 @@ jQuery.validator.addMethod("starchk", function(value, element) {
 jQuery.validator.addMethod("homechk",
 		function(value, element) {
 			//var mail = /^[a-z0-9._%-]+@([a-z0-9-]+\.)+[a-z]{2,4}$/;
-			var path = /^\/home.*$/;
-			return this.optional(element) || path.test(value);
+			var path = /^\/home\/.*$/;
+			var path2 = /^.*\/\.\.+\/.*$/;
+			return this.optional(element) || (path.test(value) && !path2.test(value));
 		}, "只允许下载home路径下文件");
 </script>
 </body>

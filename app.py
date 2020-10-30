@@ -7,7 +7,10 @@ from flask import request,render_template,redirect,session,send_from_directory,g
 app = Flask(__name__)
 app.config["SECRET_KEY"] = 'TPmi4aLWRbyVq8zu9v82dWYW1'
 conf_file = "config.json"
-if not os.path.isfile(conf_file):
+if os.path.isfile(conf_file):
+    with open(conf_file) as config_file:
+        config = json.load(config_file)
+else:
     print('Config file not exist!')
     sys.exit(0)
 
@@ -22,7 +25,7 @@ def login_check(func):#登录检查装饰器
 
 def authenticate(username,password):
     with open(conf_file) as config_file:
-        g.config = json.load(config_file)
+        config = json.load(config_file)
     for user in config["info"]:
         if user["username"] == username:
             if user["password"] == password:  # 登录判断
@@ -37,14 +40,14 @@ def login():
         username = request.form['username']
         password = request.form['password']
         user = authenticate(username,password)
-        if user["active"]:
-            if user:
+        if user:
+            if user["active"]:
                 session['username'] = user['username']
                 return redirect('/index')
-            else:#判断密码是否正确
-                return render_template("login.html",msg=u'用户名或密码错误')
-        else:
-            render_template("login.html", msg=u'此用户已被锁定请联系管理员解锁')
+            else:
+                return render_template("login.html", msg=u'此用户已被锁定请联系管理员解锁')
+        else:#判断密码是否正确
+            return render_template("login.html", msg=u'用户名或密码错误')
     return render_template("login.html")
 
 @app.route('/index', methods=['POST', 'GET'])
@@ -53,13 +56,14 @@ def index():
     if request.method == 'POST':
         host = request.form["host"]
         file_path = request.form["file_path"]
-        if "home" not in file_path or ".." in file_path:
-            for user in g.config["info"]:
+        if "home" not in file_path or "/../" in file_path:
+            for user in config["info"]:
                 if user["username"] == session["username"]:
                     user["active"] = False
             with open(conf_file,'w') as f:
                 f.write(json.dumps(config))
-            return "invalid path,you had baned"
+            session.clear()
+            return "invalid path,you had been baned"
         shell='ansible -i hosts '+host+' -m fetch -a "src='+file_path+' dest=/tmp/"'
         result = os.popen(shell).read().split("=>")
         print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+"-->"+session['username']+" download file:"+file_path)
@@ -72,7 +76,7 @@ def index():
             return send_from_directory(local_path, filename=filename, as_attachment=True)
         #return host_info
     else:
-        for user in g.config["info"]:
+        for user in config["info"]:
             if user["username"] == session["username"]:
                 hosts = user["hosts"]
         return render_template("index.html", hosts=hosts)
