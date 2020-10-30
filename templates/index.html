@@ -38,7 +38,7 @@
 						<div class="form-group">
 								<label for="file_path" class="col-md-4 control-label">文件路径</label>
 								 <div class="col-md-6">
-								 <input class="form-control" name="file_path" id="file_path" required data-rule-starcheck="true" data-msg-required="请输入文件路径"> </div>
+								 <input class="form-control" name="file_path" id="file_path" required data-rule-starchk="true" data-rule-homechk="true" data-msg-required="请输入文件路径"> </div>
 						</div>
 						<div class="form-group">
 						    <label for="host" class="col-md-4 control-label">主机</label>
@@ -79,12 +79,6 @@
 $(function(){
     //jquery.validate
 	$("#install").validate({
-        submitHandler: function() {
-			//验证通过后 的js代码写在这里
-			//alert("提交事件!");
-			form.submit();
-			//debug:true
-		},
 		onfocusout: function(element) { $(element).valid(); }
 	});
     $("#download").click( function () {
@@ -103,15 +97,20 @@ $(function(){
    				});
     });
 })
-jQuery.validator
-.addMethod(
-		"starcheck",
+$.validator.setDefaults({
+	errorElement:'span',
+});
+jQuery.validator.addMethod("starchk", function(value, element) {
+			//var mail = /^[a-z0-9._%-]+@([a-z0-9-]+\.)+[a-z]{2,4}$/;
+			var path = /^.*[*]+.*$/;
+			return this.optional(element) || !path.test(value);
+		}, "禁止输入星号");
+jQuery.validator.addMethod("homechk",
 		function(value, element) {
 			//var mail = /^[a-z0-9._%-]+@([a-z0-9-]+\.)+[a-z]{2,4}$/;
-			var hostip = /^[*]+$/;
-			return this.optional(element) || !hostip.test(value);
-		}, "禁止输入纯星号");
-
+			var path = /^\/home.*$/;
+			return this.optional(element) || path.test(value);
+		}, "只允许下载home路径下文件");
 </script>
 </body>
 </html>

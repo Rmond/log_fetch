@@ -74,12 +74,6 @@
 $(function(){
     //jquery.validate
 	$("#login").validate({
-		submitHandler: function() {
-			//验证通过后 的js代码写在这里
-			//alert("提交事件!");
-			form.submit();
-			//debug:true
-		},
 		onfocusout: function(element) { $(element).valid(); },
 	});
 })
