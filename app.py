@@ -54,9 +54,9 @@ def index():
         host = request.form["host"]
         file_path = request.form["file_path"]
         if "home" not in file_path or ".." in file_path:
-            for user in config["info"]:
+            for user in g.config["info"]:
                 if user["username"] == session["username"]:
-                    config["active"] = False
+                    user["active"] = False
             with open(conf_file,'w') as f:
                 f.write(json.dumps(config))
             return "invalid path,you had baned"
@@ -72,7 +72,7 @@ def index():
             return send_from_directory(local_path, filename=filename, as_attachment=True)
         #return host_info
     else:
-        for user in config["info"]:
+        for user in g.config["info"]:
             if user["username"] == session["username"]:
                 hosts = user["hosts"]
         return render_template("index.html", hosts=hosts)
