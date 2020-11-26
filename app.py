@@ -100,7 +100,7 @@ def filter():
             return "invalid path,you had been baned"
         shell='ansible -i hosts '+host+' -m shell -a "grep -rn '+key+' '+file_path+'"'
         result = os.popen(shell).read().split("=>")
-        result = shell
+        #result = shell
         print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+"-->"+session['username']+host+" filter "+key+" file:"+file_path)
         res_flag = result[0]
         return res_flag
