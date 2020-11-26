@@ -1,5 +1,6 @@
 # encoding: utf-8
 import json,os,sys,datetime
+from functools import wraps
 
 from flask import Flask
 from flask import request,render_template,redirect,session,send_from_directory,g
@@ -16,6 +17,7 @@ else:
 
 
 def login_check(func):#登录检查装饰器
+    @wraps(func)
     def wrapper(*args,**kwargs):
         username = session.get('username',None)
         if not username:
@@ -80,6 +82,28 @@ def index():
             if user["username"] == session["username"]:
                 hosts = user["hosts"]
         return render_template("index.html", hosts=hosts)
+
+@app.route('/filter', methods=['POST'])
+@login_check
+def filter():
+    if request.method == 'POST':
+        host = request.form["host"]
+        file_path = request.form["file_path"]
+        key = request.form["key"]
+        if "home" not in file_path or "/../" in file_path:
+            for user in config["info"]:
+                if user["username"] == session["username"]:
+                    user["active"] = False
+            with open(conf_file,'w') as f:
+                f.write(json.dumps(config))
+            session.clear()
+            return "invalid path,you had been baned"
+        shell='ansible -i hosts '+host+' -m shell -a "grep -rn '+key+' '+file_path+'"'
+        #result = os.popen(shell).read().split("=>")
+        result = shell
+        print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+"-->"+session['username']+host+" filter "+key+" file:"+file_path)
+        res_flag = result[0]
+        return res_flag
 
 if __name__ == '__main__':
     conf_file = "config.json"
