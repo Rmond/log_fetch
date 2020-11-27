@@ -138,7 +138,7 @@ $(function(){
             $("#flt-btn").attr("disabled", true);
             $.ajax({
         	   type: "POST",
-   		       url: "/filter",
+   		       url: "/log_fetch/filter",
                dataType: "json",
    		       data: {"host":host,"file_path":file_path,"key":key},
    		       traditional: true,
