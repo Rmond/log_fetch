@@ -102,7 +102,7 @@ def filter():
         result = os.popen(shell).read().split(">>")
         #result = shell
         print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+"-->"+session['username']+host+" filter "+key+" file:"+file_path)
-        res_flag = result[0]
+        res_flag = result[1]
         return {"res":res_flag}
 
 if __name__ == '__main__':
