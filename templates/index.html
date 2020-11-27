@@ -99,7 +99,7 @@
 					    </div>
                         <div class="form-group">
 							<div class="col-md-6 col-md-offset-6">
-								<button class="btn btn-default">过滤</button>
+								<button class="btn btn-default" id="flt-btn" >过滤</button>
 							</div>
                         </div>
 					    </div>
@@ -132,9 +132,10 @@ $(function(){
 	$("#filter").validate({
 		submitHandler: function() {
 			//验证通过后 的js代码写在这里
-            var host = $('#host2').val()
-            var file_path = $('#file_path2').val()
-            var key = $('#key2').val()
+            var host = $('#host2').val();
+            var file_path = $('#file_path2').val();
+            var key = $('#key2').val();
+            $("#flt-btn").attr("disabled", true);
             $.ajax({
         	   type: "POST",
    		       url: "/filter",
@@ -144,6 +145,7 @@ $(function(){
    		       success: function(data){
                    //console.log("11111111111"+res);
                    $('#res').val(data.res);
+                   $("#flt-btn").attr("disabled", false);
    		         }
             });
 		},
