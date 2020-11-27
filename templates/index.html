@@ -142,9 +142,8 @@ $(function(){
    		       data: {"host":host,"file_path":file_path,"key":key},
    		       traditional: true,
    		       success: function(data){
-                   var res = eval('(' + data + ')');
-                   console.log("11111111111"+data)
-                   $('#res').val(res)
+                   //console.log("11111111111"+res);
+                   $('#res').val(data.res);
    		         }
             });
 		},
