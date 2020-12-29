@@ -41,6 +41,7 @@ def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
+        print(request.url)
         user = authenticate(username,password)
         if user:
             if user["active"]:
@@ -105,6 +106,14 @@ def filter():
         print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+"-->"+session['username']+host+" filter "+key+" file:"+file_path)
         res_flag = result[1]
         return {"res":res_flag}
+
+@app.route('/send', methods=['POST', 'GET'])
+def send():
+    if request.method == 'POST':
+        post_data = request.get_data()
+        print(post_data)
+        print(request.url)
+        return 'success'
 
 if __name__ == '__main__':
     conf_file = "config.json"
