@@ -105,9 +105,10 @@ def filter():
             db.commit()
             session.clear()
             return "invalid path,you had been baned"
-        shell='ansible -i hosts '+host+' -m shell -a "grep -rn '+key+' '+file_path+'"'
+        shell = 'ansible -i hosts '+host+' -m shell -a "grep -rn '+key+' '+file_path+'"'
         print(shell)
-        result = os.popen(shell.encode('utf-8')).read().split('>>')
+        # 删除 encode('utf-8')
+        result = os.popen(shell).read().split('>>')
         print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+"-->"+session['username']+host+" filter "+key+" file:"+file_path)
         try:
             res_flag = result[1] if len(result) > 1 else ""
