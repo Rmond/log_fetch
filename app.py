@@ -70,7 +70,7 @@ def index():
             session.clear()
             return "invalid path,you had been baned"
         shell='ansible -i hosts '+host+' -m fetch -a "src='+file_path+' dest=/tmp/"'
-        result = os.popen(shell.encode('utf-8')).read().split("=>")
+        result = os.popen(shell).read().split("=>")
         print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+"-->"+session['username']+" download "+host+" file:"+file_path)
         res_flag = result[0]
         if "FAILED" in res_flag:
@@ -107,7 +107,6 @@ def filter():
             return "invalid path,you had been baned"
         shell = 'ansible -i hosts '+host+' -m shell -a "grep -rn '+key+' '+file_path+'"'
         print(shell)
-        # 删除 encode('utf-8')
         result = os.popen(shell).read().split('>>')
         print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+"-->"+session['username']+host+" filter "+key+" file:"+file_path)
         try:
