@@ -1,11 +1,14 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>系统管理 - {% block title %}{% endblock %}</title>
-    <link href="/static/bootstrap/css/bootstrap.min.css" rel="stylesheet">
-    <link href="/static/font-awesome/css/font-awesome.min.css" rel="stylesheet">
-    <!-- 使用CDN -->
-    <link href="https://cdn.datatables.net/1.10.24/css/dataTables.bootstrap.min.css" rel="stylesheet">
+    <link href="/log_fetch/static/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/log_fetch/static/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+    <!-- 修正 DataTables CSS 路径 -->
+    <link href="/log_fetch/static/datatables/css/dataTables.bootstrap.css" rel="stylesheet">
+    <link href="/log_fetch/static/select2/css/select2.min.css" rel="stylesheet">
     <style>
     /* 内联 sb-admin-2 的核心样式 */
     #wrapper{width:100%}
@@ -39,6 +42,7 @@
                         <li><a href="/log_fetch/admin/users"><i class="fa fa-users fa-fw"></i> 用户管理</a></li>
                         <li><a href="/log_fetch/admin/hosts"><i class="fa fa-server fa-fw"></i> 主机管理</a></li>
                         <li><a href="/log_fetch/admin/permissions"><i class="fa fa-key fa-fw"></i> 授权管理</a></li>
+                        <li><a href="/log_fetch/admin/logs"><i class="fa fa-list fa-fw"></i> 日志审查</a></li>
                     </ul>
                 </div>
             </div>
@@ -51,11 +55,12 @@
         </div>
     </div>
 
-    <script src="/static/jquery/jquery-1.12.4.min.js"></script>
-    <script src="/static/bootstrap/js/bootstrap.min.js"></script>
-    <!-- 使用CDN -->
-    <script src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/1.10.24/js/dataTables.bootstrap.min.js"></script>
+    <script src="/log_fetch/static/jquery/jquery-1.12.4.min.js"></script>
+    <script src="/log_fetch/static/bootstrap/js/bootstrap.min.js"></script>
+    <!-- 修正 DataTables JS 路径 -->
+    <script src="/log_fetch/static/datatables/js/jquery.dataTables.min.js"></script>
+    <script src="/log_fetch/static/datatables/js/dataTables.bootstrap.js"></script>
+    <script src="/log_fetch/static/select2/js/select2.min.js"></script>
     <script>
     // 内联 sb-admin-2 的核心功能
     $(function(){

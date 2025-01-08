@@ -72,6 +72,17 @@ def index():
             return "invalid path,you had been baned"
         shell='ansible -i hosts '+host+' -m fetch -a "src='+file_path+' dest=/tmp/"'
         result = os.popen(shell).read().split("=>")
+        
+        # 记录下载操作日志
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        db = get_db()
+        db.execute('''INSERT INTO operation_logs 
+                     (timestamp, username, host, operation_type, file_path)
+                     VALUES (?, ?, ?, ?, ?)''',
+                  (timestamp, session['username'], host, 'download', file_path))
+        db.commit()
+        
+        res_flag = result[0]
         print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+"-->"+session['username']+" download "+host+" file:"+file_path)
         res_flag = result[0]
         if "FAILED" in res_flag:
@@ -112,7 +123,16 @@ def filter():
         shell = 'ansible -i hosts '+host+' -m shell -a "grep -rn '+key+' '+file_path+'"'
         print(shell)
         result = os.popen(shell).read().split('>>')
-        print(datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")+"-->"+session['username']+host+" filter "+key+" file:"+file_path)
+        
+        # 记录过滤操作日志
+        timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        db = get_db()
+        db.execute('''INSERT INTO operation_logs 
+                     (timestamp, username, host, operation_type, search_key, file_path)
+                     VALUES (?, ?, ?, ?, ?, ?)''',
+                  (timestamp, session['username'], host, 'filter', key, file_path))
+        db.commit()
+        
         try:
             res_flag = result[1] if len(result) > 1 else ""
             return jsonify({"res": res_flag})
@@ -130,11 +150,15 @@ def admin_index():
     
     # 获取统计数据
     user_count = db.execute('SELECT COUNT(*) as count FROM users').fetchone()['count']
-    host_count = db.execute('SELECT COUNT(DISTINCT host) as count FROM user_hosts').fetchone()['count']
+    host_count = db.execute('SELECT COUNT(DISTINCT host) as count FROM hosts').fetchone()['count']
+    perm_count = db.execute('SELECT COUNT(*) as count FROM user_hosts').fetchone()['count']
+    log_count = db.execute('SELECT COUNT(*) as count FROM operation_logs').fetchone()['count']
     
     return render_template('admin/index.html', 
                          user_count=user_count,
-                         host_count=host_count)
+                         host_count=host_count,
+                         perm_count=perm_count,
+                         log_count=log_count)
 
 @app.route(URL_PREFIX + '/admin/users', methods=['GET', 'POST'])
 @login_check
@@ -347,6 +371,113 @@ def send():
 def logout():
     session.clear()
     return redirect(URL_PREFIX + '/')
+
+@app.route(URL_PREFIX + '/admin/logs')
+@login_check
+def admin_logs():
+    db = get_db()
+    user = db.execute('SELECT is_admin FROM users WHERE username = ?',
+                     (session["username"],)).fetchone()
+    if not user['is_admin']:
+        return redirect(URL_PREFIX + '/index')
+    
+    # 获取所有用户和主机用于过滤
+    users = db.execute('SELECT DISTINCT username FROM users').fetchall()
+    hosts = db.execute('SELECT DISTINCT host FROM hosts').fetchall()
+    
+    return render_template('admin/logs.html', users=users, hosts=hosts)
+
+@app.route(URL_PREFIX + '/admin/logs/data', methods=['POST'])
+@login_check
+def get_logs_data():
+    db = get_db()
+    user = db.execute('SELECT is_admin FROM users WHERE username = ?',
+                     (session["username"],)).fetchone()
+    if not user['is_admin']:
+        return jsonify({"error": "Unauthorized"}), 403
+    
+    # 构建查询条件
+    conditions = []
+    params = []
+    
+    if request.form.get('start_date'):
+        conditions.append("timestamp >= ?")
+        params.append(request.form['start_date'] + " 00:00:00")
+    
+    if request.form.get('end_date'):
+        conditions.append("timestamp <= ?")
+        params.append(request.form['end_date'] + " 23:59:59")
+    
+    if request.form.get('username'):
+        conditions.append("username = ?")
+        params.append(request.form['username'])
+    
+    if request.form.get('host'):
+        conditions.append("host = ?")
+        params.append(request.form['host'])
+    
+    # 构建SQL查询
+    sql = "SELECT * FROM operation_logs"
+    if conditions:
+        sql += " WHERE " + " AND ".join(conditions)
+    sql += " ORDER BY timestamp DESC"
+    
+    # 执行查询
+    logs = db.execute(sql, params).fetchall()
+    
+    # 转换为字典列表
+    log_list = []
+    for log in logs:
+        log_dict = dict(log)
+        # 将None值转换为空字符串
+        for key in log_dict:
+            if log_dict[key] is None:
+                log_dict[key] = ''
+        log_list.append(log_dict)
+    
+    return jsonify({"data": log_list})
+
+@app.route(URL_PREFIX + '/admin/logs/stats')
+@login_check
+def get_logs_stats():
+    db = get_db()
+    user = db.execute('SELECT is_admin FROM users WHERE username = ?',
+                     (session["username"],)).fetchone()
+    if not user['is_admin']:
+        return jsonify({"error": "Unauthorized"}), 403
+    
+    # 获取最近7天的日期列表
+    dates = []
+    downloads = []
+    filters = []
+    
+    for i in range(6, -1, -1):
+        date = (datetime.datetime.now() - datetime.timedelta(days=i)).strftime('%Y-%m-%d')
+        dates.append(date)
+        
+        # 统计下载次数
+        download_count = db.execute('''
+            SELECT COUNT(*) as count 
+            FROM operation_logs 
+            WHERE operation_type = 'download' 
+            AND date(timestamp) = date(?)
+        ''', (date,)).fetchone()['count']
+        downloads.append(download_count)
+        
+        # 统计过滤次数
+        filter_count = db.execute('''
+            SELECT COUNT(*) as count 
+            FROM operation_logs 
+            WHERE operation_type = 'filter' 
+            AND date(timestamp) = date(?)
+        ''', (date,)).fetchone()['count']
+        filters.append(filter_count)
+    
+    return jsonify({
+        "dates": dates,
+        "downloads": downloads,
+        "filters": filters
+    })
 
 if __name__ == '__main__':
     if os.path.isfile('users.db'):

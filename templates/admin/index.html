@@ -8,6 +8,7 @@
     </div>
 </div>
 <div class="row">
+    <!-- 用户数量卡片 -->
     <div class="col-lg-3 col-md-6">
         <div class="panel panel-primary">
             <div class="panel-heading">
@@ -21,7 +22,7 @@
                     </div>
                 </div>
             </div>
-            <a href="/admin/users">
+            <a href="/log_fetch/admin/users">
                 <div class="panel-footer">
                     <span class="pull-left">用户管理</span>
                     <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
@@ -30,6 +31,7 @@
             </a>
         </div>
     </div>
+    <!-- 主机数量卡片 -->
     <div class="col-lg-3 col-md-6">
         <div class="panel panel-green">
             <div class="panel-heading">
@@ -43,7 +45,7 @@
                     </div>
                 </div>
             </div>
-            <a href="/admin/hosts">
+            <a href="/log_fetch/admin/hosts">
                 <div class="panel-footer">
                     <span class="pull-left">主机管理</span>
                     <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
@@ -52,9 +54,188 @@
             </a>
         </div>
     </div>
+    <!-- 授权数量卡片 -->
+    <div class="col-lg-3 col-md-6">
+        <div class="panel panel-yellow">
+            <div class="panel-heading">
+                <div class="row">
+                    <div class="col-xs-3">
+                        <i class="fa fa-key fa-5x"></i>
+                    </div>
+                    <div class="col-xs-9 text-right">
+                        <div class="huge">{{ perm_count }}</div>
+                        <div>授权数量</div>
+                    </div>
+                </div>
+            </div>
+            <a href="/log_fetch/admin/permissions">
+                <div class="panel-footer">
+                    <span class="pull-left">授权管理</span>
+                    <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
+                    <div class="clearfix"></div>
+                </div>
+            </a>
+        </div>
+    </div>
+    <!-- 日志数量卡片 -->
+    <div class="col-lg-3 col-md-6">
+        <div class="panel panel-red">
+            <div class="panel-heading">
+                <div class="row">
+                    <div class="col-xs-3">
+                        <i class="fa fa-list fa-5x"></i>
+                    </div>
+                    <div class="col-xs-9 text-right">
+                        <div class="huge">{{ log_count }}</div>
+                        <div>操作日志</div>
+                    </div>
+                </div>
+            </div>
+            <a href="/log_fetch/admin/logs">
+                <div class="panel-footer">
+                    <span class="pull-left">日志审查</span>
+                    <span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span>
+                    <div class="clearfix"></div>
+                </div>
+            </a>
+        </div>
+    </div>
 </div>
+
+<!-- 添加统计图表行 -->
+<div class="row">
+    <div class="col-lg-12">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h3 class="panel-title">近7天操作统计</h3>
+            </div>
+            <div class="panel-body">
+                <div id="statsChart" style="height: 300px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* 添加黄色和红色面板样式 */
+.panel-yellow {
+    border-color: #f0ad4e;
+}
+.panel-yellow > .panel-heading {
+    border-color: #f0ad4e;
+    color: white;
+    background-color: #f0ad4e;
+}
+.panel-yellow > a {
+    color: #f0ad4e;
+}
+.panel-yellow > a:hover {
+    color: #df8a13;
+}
+.panel-red {
+    border-color: #d9534f;
+}
+.panel-red > .panel-heading {
+    border-color: #d9534f;
+    color: white;
+    background-color: #d9534f;
+}
+.panel-red > a {
+    color: #d9534f;
+}
+.panel-red > a:hover {
+    color: #b52b27;
+}
+</style>
 {% endblock %}
 
+{% block scripts %}
+<!-- 添加 ECharts -->
+<script src="/log_fetch/static/echarts/echarts.min.js"></script>
+<script>
+$(document).ready(function() {
+    // 初始化图表
+    var chartDom = document.getElementById('statsChart');
+    var myChart = echarts.init(chartDom);
+    
+    // 获取最近7天的统计数据
+    $.ajax({
+        url: '/log_fetch/admin/logs/stats',
+        type: 'GET',
+        success: function(response) {
+            var option = {
+                tooltip: {
+                    trigger: 'axis',
+                    axisPointer: {
+                        type: 'shadow'
+                    }
+                },
+                legend: {
+                    data: ['文件下载', '内容过滤']
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    containLabel: true
+                },
+                xAxis: {
+                    type: 'category',
+                    data: response.dates,
+                    axisLabel: {
+                        rotate: 45
+                    }
+                },
+                yAxis: {
+                    type: 'value',
+                    name: '操作次数',
+                    minInterval: 1
+                },
+                series: [
+                    {
+                        name: '文件下载',
+                        type: 'line',
+                        data: response.downloads,
+                        smooth: true,
+                        itemStyle: {
+                            color: '#5cb85c'
+                        },
+                        areaStyle: {
+                            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                { offset: 0, color: '#5cb85c' },
+                                { offset: 1, color: '#fff' }
+                            ])
+                        }
+                    },
+                    {
+                        name: '内容过滤',
+                        type: 'line',
+                        data: response.filters,
+                        smooth: true,
+                        itemStyle: {
+                            color: '#337ab7'
+                        },
+                        areaStyle: {
+                            color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                                { offset: 0, color: '#337ab7' },
+                                { offset: 1, color: '#fff' }
+                            ])
+                        }
+                    }
+                ]
+            };
+            
+            myChart.setOption(option);
+        }
+    });
+
+    // 窗口大小改变时重绘图表
+    $(window).resize(function() {
+        myChart.resize();
+    });
+});
+</script>
+{% endblock %}
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
