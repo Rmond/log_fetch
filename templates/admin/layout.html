@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>系统管理 - {% block title %}{% endblock %}</title>
+    <link href="/static/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/static/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+    <!-- 使用CDN -->
+    <link href="https://cdn.datatables.net/1.10.24/css/dataTables.bootstrap.min.css" rel="stylesheet">
+    <style>
+    /* 内联 sb-admin-2 的核心样式 */
+    #wrapper{width:100%}
+    .sidebar{position:fixed;top:51px;bottom:0;left:0;width:250px;padding:20px;background-color:#f8f8f8;border-right:1px solid #e7e7e7}
+    #page-wrapper{margin-left:250px;padding:20px}
+    .navbar-brand{padding:15px 30px}
+    .huge{font-size:40px}
+    .panel-green{border-color:#5cb85c}
+    .panel-green>.panel-heading{background-color:#5cb85c;color:#fff}
+    </style>
+</head>
+<body>
+    <div id="wrapper">
+        <nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="/admin">系统管理后台</a>
+            </div>
+
+            <ul class="nav navbar-top-links navbar-right">
+                <li class="dropdown">
+                    <a href="/logout">
+                        <i class="fa fa-sign-out fa-fw"></i> 退出登录
+                    </a>
+                </li>
+            </ul>
+
+            <div class="navbar-default sidebar" role="navigation">
+                <div class="sidebar-nav navbar-collapse">
+                    <ul class="nav" id="side-menu">
+                        <li><a href="/admin"><i class="fa fa-dashboard fa-fw"></i> 控制面板</a></li>
+                        <li><a href="/admin/users"><i class="fa fa-users fa-fw"></i> 用户管理</a></li>
+                        <li><a href="/admin/hosts"><i class="fa fa-server fa-fw"></i> 主机管理</a></li>
+                        <li><a href="/admin/permissions"><i class="fa fa-key fa-fw"></i> 授权管理</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper">
+            <div class="container-fluid">
+                {% block content %}{% endblock %}
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/jquery/jquery-1.12.4.min.js"></script>
+    <script src="/static/bootstrap/js/bootstrap.min.js"></script>
+    <!-- 使用CDN -->
+    <script src="https://cdn.datatables.net/1.10.24/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.24/js/dataTables.bootstrap.min.js"></script>
+    <script>
+    // 内联 sb-admin-2 的核心功能
+    $(function(){
+        // 响应式侧边栏
+        $(window).resize(function() {
+            var width = (window.innerWidth > 0) ? window.innerWidth : screen.width;
+            if (width < 768) {
+                $('div.navbar-collapse').addClass('collapse');
+            } else {
+                $('div.navbar-collapse').removeClass('collapse');
+            }
+        });
+    });
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

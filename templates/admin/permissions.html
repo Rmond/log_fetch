@@ -1,0 +1,195 @@
+{% extends "admin/layout.html" %}
+{% block title %}授权管理{% endblock %}
+
+{% block content %}
+<style>
+.host-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin: 0;
+    padding: 0;
+}
+.host-badge {
+    background-color: #f0f0f0;
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    padding: 2px 8px;
+    font-size: 12px;
+    color: #666;
+    display: inline-block;
+}
+</style>
+
+<div class="row">
+    <div class="col-lg-12">
+        <h1 class="page-header">用户授权管理</h1>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#editAuthModal">
+                    <i class="fa fa-plus"></i> 添加授权
+                </button>
+            </div>
+            <div class="panel-body">
+                <div class="table-responsive">
+                    <table class="table table-striped table-bordered table-hover" id="permTable">
+                        <thead>
+                            <tr>
+                                <th width="15%">用户名</th>
+                                <th>已授权主机</th>
+                                <th width="10%">主机数量</th>
+                                <th width="15%">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for perm in user_permissions %}
+                            <tr>
+                                <td>{{ perm.username }}</td>
+                                <td>
+                                    {% if perm.hosts != '无授权主机' %}
+                                    <div class="host-list">
+                                        {% for host in perm.hosts.split(',') %}
+                                        <span class="host-badge">{{ host }}</span>
+                                        {% endfor %}
+                                    </div>
+                                    {% else %}
+                                    <span class="text-muted">{{ perm.hosts }}</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center">{{ perm.host_count }}</td>
+                                <td>
+                                    <button class="btn btn-xs btn-primary edit-auth" data-username="{{ perm.username }}">
+                                        <i class="fa fa-edit"></i> 编辑授权
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 编辑授权模态框 -->
+<div class="modal fade" id="editAuthModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">编辑授权</h4>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label>选择用户</label>
+                            <select class="form-control" id="userSelect">
+                                <option value="">请选择用户</option>
+                                {% for user in users %}
+                                <option value="{{ user.username }}">{{ user.username }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-5">
+                        <h5>未授权主机</h5>
+                        <select multiple class="form-control" id="availableHosts" style="height:300px">
+                        </select>
+                    </div>
+                    <div class="col-md-2 text-center" style="padding-top:120px">
+                        <button type="button" class="btn btn-primary" id="addHost">&gt;&gt;</button>
+                        <br><br>
+                        <button type="button" class="btn btn-primary" id="removeHost">&lt;&lt;</button>
+                    </div>
+                    <div class="col-md-5">
+                        <h5>已授权主机</h5>
+                        <select multiple class="form-control" id="selectedHosts" style="height:300px">
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="saveAuth">保存</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+$(document).ready(function() {
+    // 初始化DataTable
+    var table = $('#permTable').DataTable({
+        "language": {
+            "url": "https://cdn.datatables.net/plug-ins/1.10.24/i18n/Chinese.json"
+        }
+    });
+
+    var allHosts = {{ all_hosts|tojson|safe }};
+    
+    $('#userSelect').change(function() {
+        loadUserHosts($(this).val());
+    });
+
+    $('.edit-auth').click(function() {
+        var username = $(this).data('username');
+        $('#userSelect').val(username).trigger('change');
+        $('#editAuthModal').modal('show');
+    });
+
+    $('#addHost, #removeHost').click(function() {
+        var from = $(this).attr('id') == 'addHost' ? '#availableHosts' : '#selectedHosts';
+        var to = $(this).attr('id') == 'addHost' ? '#selectedHosts' : '#availableHosts';
+        $(from + ' option:selected').remove().appendTo(to);
+    });
+
+    $('#saveAuth').click(function() {
+        var username = $('#userSelect').val();
+        var hosts = $('#selectedHosts option').map(function() {
+            return $(this).val();
+        }).get();
+
+        $.ajax({
+            url: '/admin/permissions',
+            type: 'POST',
+            data: {
+                action: 'update',
+                username: username,
+                hosts: hosts
+            },
+            success: function() {
+                location.reload();
+            }
+        });
+    });
+
+    function loadUserHosts(username) {
+        $.ajax({
+            url: '/admin/permissions/user_hosts',
+            type: 'GET',
+            data: { username: username },
+            success: function(data) {
+                $('#availableHosts, #selectedHosts').empty();
+                
+                // 填充已授权和未授权主机
+                var userHosts = new Set(data.user_hosts);
+                allHosts.forEach(function(host) {
+                    var option = $('<option></option>').val(host).text(host);
+                    if (userHosts.has(host)) {
+                        $('#selectedHosts').append(option);
+                    } else {
+                        $('#availableHosts').append(option);
+                    }
+                });
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
