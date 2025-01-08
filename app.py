@@ -479,6 +479,45 @@ def get_logs_stats():
         "filters": filters
     })
 
+@app.route(URL_PREFIX + '/admin/logs/clean', methods=['POST'])
+@login_check
+def clean_logs():
+    db = get_db()
+    user = db.execute('SELECT is_admin FROM users WHERE username = ?',
+                     (session["username"],)).fetchone()
+    if not user['is_admin']:
+        return jsonify({"error": "Unauthorized"}), 403
+    
+    try:
+        # 获取一年前的日期
+        one_year_ago = (datetime.datetime.now() - datetime.timedelta(days=365)).strftime('%Y-%m-%d')
+        
+        # 先统计要删除的记录数
+        count = db.execute('''
+            SELECT COUNT(*) as count 
+            FROM operation_logs 
+            WHERE date(timestamp) < date(?)
+        ''', (one_year_ago,)).fetchone()['count']
+        
+        # 执行删除
+        db.execute('''
+            DELETE FROM operation_logs 
+            WHERE date(timestamp) < date(?)
+        ''', (one_year_ago,))
+        
+        db.commit()
+        return jsonify({
+            "status": "success",
+            "count": count,
+            "message": "清理完成"
+        })
+    except Exception as e:
+        db.rollback()
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
+
 if __name__ == '__main__':
     if os.path.isfile('users.db'):
         app.run(host='0.0.0.0', port=5000)
