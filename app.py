@@ -79,8 +79,11 @@ def index():
         else:
             try:
                 res_stdout = json.loads(result[1])
-                local_path,filename = os.path.split(res_stdout["dest"])
-                return send_from_directory(local_path, filename=filename, as_attachment=True)
+                local_path, filename = os.path.split(res_stdout["dest"])
+                # 修改 send_from_directory 调用，使用 directory 参数
+                return send_from_directory(directory=local_path, 
+                                        path=filename, 
+                                        as_attachment=True)
             except json.JSONDecodeError:
                 return "Invalid response format"
     else:
