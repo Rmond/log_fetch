@@ -127,7 +127,7 @@ $(document).ready(function() {
     $('#addForm').on('submit', function(e) {
         e.preventDefault();
         $.ajax({
-            url: '/admin/users',
+            url: '/log_fetch/admin/users',  // 修改URL
             type: 'POST',
             data: {
                 action: 'add',
@@ -145,7 +145,7 @@ $(document).ready(function() {
         if(confirm('确定要删除该用户吗？')) {
             var username = $(this).data('id');
             $.ajax({
-                url: '/admin/users',
+                url: '/log_fetch/admin/users',  // 修改URL
                 type: 'POST',
                 data: {
                     action: 'delete',
@@ -162,7 +162,7 @@ $(document).ready(function() {
     $('.toggle-status').click(function() {
         var username = $(this).data('id');
         $.ajax({
-            url: '/admin/users',
+            url: '/log_fetch/admin/users',  // 修改URL
             type: 'POST',
             data: {
                 action: 'toggle_active',
@@ -185,7 +185,7 @@ $(document).ready(function() {
     $('#editForm').on('submit', function(e) {
         e.preventDefault();
         $.ajax({
-            url: '/admin/users',
+            url: '/log_fetch/admin/users',  // 修改URL
             type: 'POST',
             data: {
                 action: 'edit',
