@@ -6,6 +6,9 @@ from flask import Flask,request,render_template,redirect,session,send_from_direc
 app = Flask(__name__)
 app.config["SECRET_KEY"] = 'TPmi4aLWRbyVq8zu9v82dWYW1'
 
+# 添加URL前缀配置
+URL_PREFIX = '/log_fetch'
+
 def get_db():
     if 'db' not in g:
         g.db = sqlite3.connect('users.db')
@@ -22,7 +25,7 @@ def login_check(func):#登录检查装饰器
     def wrapper(*args,**kwargs):
         username = session.get('username',None)
         if not username:
-            return redirect('/')
+            return redirect(URL_PREFIX + '/')
         return func(*args,**kwargs)
     return wrapper
 
@@ -34,7 +37,7 @@ def authenticate(username, password):
         return dict(user)
     return None
 
-@app.route('/', methods=['POST', 'GET'])
+@app.route(URL_PREFIX + '/', methods=['POST', 'GET'])
 def login():
     if request.method == 'POST':
         username = request.form['username']
@@ -45,15 +48,15 @@ def login():
             if user["active"]:
                 session['username'] = user['username']
                 if user['is_admin']:  # 管理员跳转到管理后台
-                    return redirect('/admin')
-                return redirect('/index')  # 普通用户跳转到原始页面
+                    return redirect(URL_PREFIX + '/admin')
+                return redirect(URL_PREFIX + '/index')  # 普通用户跳转到原始页面
             else:
                 return render_template("login.html", msg=u'此用户已被锁定请联系管理员解锁')
         else:
             return render_template("login.html", msg=u'用户名或密码错误')
     return render_template("login.html")
 
-@app.route('/index', methods=['POST', 'GET'])
+@app.route(URL_PREFIX + '/index', methods=['POST', 'GET'])
 @login_check
 def index():
     if request.method == 'POST':
@@ -88,7 +91,7 @@ def index():
         hosts = [host['host'] for host in hosts]
         return render_template("index.html", hosts=hosts, is_admin=user['is_admin'])
 
-@app.route('/filter', methods=['POST'])
+@app.route(URL_PREFIX + '/filter', methods=['POST'])
 @login_check
 def filter():
     if request.method == 'POST':
@@ -112,14 +115,14 @@ def filter():
         except Exception as e:
             return jsonify({"res": str(e)})
 
-@app.route('/admin')
+@app.route(URL_PREFIX + '/admin')
 @login_check
 def admin_index():
     db = get_db()
     user = db.execute('SELECT is_admin FROM users WHERE username = ?',
                      (session["username"],)).fetchone()
     if not user['is_admin']:
-        return redirect('/index')
+        return redirect(URL_PREFIX + '/index')
     
     # 获取统计数据
     user_count = db.execute('SELECT COUNT(*) as count FROM users').fetchone()['count']
@@ -129,14 +132,14 @@ def admin_index():
                          user_count=user_count,
                          host_count=host_count)
 
-@app.route('/admin/users', methods=['GET', 'POST'])
+@app.route(URL_PREFIX + '/admin/users', methods=['GET', 'POST'])
 @login_check
 def admin_users():
     db = get_db()
     user = db.execute('SELECT is_admin FROM users WHERE username = ?',
                      (session["username"],)).fetchone()
     if not user['is_admin']:
-        return redirect('/index')
+        return redirect(URL_PREFIX + '/index')
     
     if request.method == 'POST':
         action = request.form.get('action')
@@ -197,14 +200,14 @@ def admin_users():
                          ORDER BY created_at DESC''').fetchall()
     return render_template('admin/users.html', users=users)
 
-@app.route('/admin/permissions', methods=['GET', 'POST'])
+@app.route(URL_PREFIX + '/admin/permissions', methods=['GET', 'POST'])
 @login_check
 def admin_permissions():
     db = get_db()
     user = db.execute('SELECT is_admin FROM users WHERE username = ?',
                      (session["username"],)).fetchone()
     if not user['is_admin']:
-        return redirect('/index')
+        return redirect(URL_PREFIX + '/index')
     
     if request.method == 'POST':
         action = request.form.get('action')
@@ -270,7 +273,7 @@ def admin_permissions():
                          hosts=hosts,
                          all_hosts=all_hosts)
 
-@app.route('/admin/permissions/user_hosts')
+@app.route(URL_PREFIX + '/admin/permissions/user_hosts')
 @login_check
 def get_user_hosts():
     username = request.args.get('username')
@@ -282,14 +285,14 @@ def get_user_hosts():
     })
 
 # 修改主机管理路由
-@app.route('/admin/hosts', methods=['GET', 'POST'])
+@app.route(URL_PREFIX + '/admin/hosts', methods=['GET', 'POST'])
 @login_check
 def admin_hosts():
     db = get_db()
     user = db.execute('SELECT is_admin FROM users WHERE username = ?',
                      (session["username"],)).fetchone()
     if not user['is_admin']:
-        return redirect('/index')
+        return redirect(URL_PREFIX + '/index')
     
     if request.method == 'POST':
         action = request.form.get('action')
@@ -328,7 +331,7 @@ def admin_hosts():
     
     return render_template('admin/hosts.html', hosts=hosts)
 
-@app.route('/send', methods=['POST', 'GET'])
+@app.route(URL_PREFIX + '/send', methods=['POST', 'GET'])
 def send():
     if request.method == 'POST':
         post_data = request.get_data()
@@ -336,10 +339,10 @@ def send():
         print(request.url)
         return 'success'
 
-@app.route('/logout')
+@app.route(URL_PREFIX + '/logout')
 def logout():
     session.clear()
-    return redirect('/')
+    return redirect(URL_PREFIX + '/')
 
 if __name__ == '__main__':
     if os.path.isfile('users.db'):
