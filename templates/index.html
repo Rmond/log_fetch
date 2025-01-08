@@ -7,9 +7,9 @@
     <title>日志管理平台</title>
     <link href="/static/bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <link href="/static/font-awesome/css/font-awesome.min.css" rel="stylesheet">
-    <!-- 添加Select2 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <link href="https://cdn.jsdelivr.net/npm/@ttskch/select2-bootstrap4-theme@x.x.x/dist/select2-bootstrap4.min.css" rel="stylesheet">
+    <!-- 修改Select2 CSS引用为本地路径 -->
+    <link href="/static/select2/css/select2.min.css" rel="stylesheet" />
+    <link href="/static/select2/css/select2-bootstrap4.min.css" rel="stylesheet">
     <style>
     /* 导航栏和布局样式 */
     #wrapper {width: 100%;}
@@ -137,8 +137,8 @@
     <!-- 脚本部分保持不变 -->
     <script src="/static/jquery/jquery-1.12.4.min.js"></script>
     <script src="/static/bootstrap/js/bootstrap.js"></script>
-    <!-- 添加Select2 JS -->
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <!-- 修改Select2 JS引用为本地路径 -->
+    <script src="/static/select2/js/select2.min.js"></script>
     <script src="/static/jquery-validate/jquery.validate.js"></script>
     <script src="/static/jquery-validate/messages_zh.js"></script>
     <script>
