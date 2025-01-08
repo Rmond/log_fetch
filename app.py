@@ -1,13 +1,14 @@
 import os,sys,datetime,sqlite3,json
 from functools import wraps
-
 from flask import Flask,request,render_template,redirect,session,send_from_directory,g,jsonify
-
-app = Flask(__name__)
-app.config["SECRET_KEY"] = 'TPmi4aLWRbyVq8zu9v82dWYW1'
 
 # 添加URL前缀配置
 URL_PREFIX = '/log_fetch'
+
+# 修改应用初始化，添加static_url_path
+app = Flask(__name__, 
+           static_url_path=URL_PREFIX + '/static')
+app.config["SECRET_KEY"] = 'TPmi4aLWRbyVq8zu9v82dWYW1'
 
 def get_db():
     if 'db' not in g:
