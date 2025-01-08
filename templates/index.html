@@ -1,185 +1,211 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="">
-    <meta name="author" content="">
-
-    <title>Automation Platforms</title>
-
-    <!-- Bootstrap Core CSS -->
+    <title>日志管理平台</title>
     <link href="/static/bootstrap/css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- Custom CSS -->
-    <link href="/static/css/handu.css" rel="stylesheet">
-
-    <!-- Custom Fonts -->
-    <link href="/static/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
-
-    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
-    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
-    <!--[if lt IE 9]>
-        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
-        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
-    <![endif]-->
-
+    <link href="/static/font-awesome/css/font-awesome.min.css" rel="stylesheet">
+    <!-- 添加Select2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/@ttskch/select2-bootstrap4-theme@x.x.x/dist/select2-bootstrap4.min.css" rel="stylesheet">
+    <style>
+    /* 导航栏和布局样式 */
+    #wrapper {width: 100%;}
+    .sidebar {
+        position: fixed;
+        top: 51px;
+        bottom: 0;
+        left: 0;
+        width: 250px;
+        padding: 20px;
+        background-color: #f8f8f8;
+        border-right: 1px solid #e7e7e7;
+    }
+    #page-wrapper {
+        margin-left: 250px;
+        padding: 20px;
+        padding-top: 70px;
+    }
+    .navbar-brand {padding: 15px 30px;}
+    .nav-tabs {margin-bottom: 20px;}
+    </style>
 </head>
 <body>
-{% if is_admin %}
-<div class="row" style="padding-top: 2%">
-    <div class="col-lg-12 text-center">
-        <a href="/admin/users" class="btn btn-primary">用户管理</a>
-        <a href="/admin/hosts" class="btn btn-primary">主机管理</a>
+    <div id="wrapper">
+        <!-- 顶部导航 -->
+        <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+            <div class="navbar-header">
+                <a class="navbar-brand" href="/index">日志管理平台</a>
+            </div>
+            <ul class="nav navbar-top-links navbar-right">
+                <li><a href="/logout"><i class="fa fa-sign-out fa-fw"></i> 退出登录</a></li>
+            </ul>
+        </nav>
+
+        <!-- 左侧导航栏 -->
+        <div class="sidebar">
+            <ul class="nav nav-pills nav-stacked">
+                <li class="active"><a href="#download" data-toggle="tab"><i class="fa fa-download fa-fw"></i> 日志下载</a></li>
+                <li><a href="#search" data-toggle="tab"><i class="fa fa-search fa-fw"></i> 日志查询</a></li>
+            </ul>
+        </div>
+
+        <!-- 主要内容区域 -->
+        <div id="page-wrapper">
+            <div class="tab-content">
+                <!-- 日志下载面板 -->
+                <div class="tab-pane active" id="download">
+                    <div class="panel panel-default">
+                        <div class="panel-heading"><h3 class="panel-title">日志下载</h3></div>
+                        <div class="panel-body">
+                            <form id="install" method="post" action="/log_fetch/index" class="form-horizontal">
+                                <div class="form-group">
+                                    <label for="file_path" class="col-md-2 control-label">文件路径</label>
+                                    <div class="col-md-8">
+                                        <input class="form-control" name="file_path" id="file_path" required data-rule-starchk="true" data-rule-homechk="true" data-msg-required="请输入文件路径">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="host" class="col-md-2 control-label">主机</label>
+                                    <div class="col-md-8">
+                                        <select id="host" name="host" class="form-control">
+                                            {% for host in hosts %}
+                                            <option value={{host}}>{{host}}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-offset-2 col-md-8">
+                                        <button class="btn btn-primary">下载</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 日志查询面板 -->
+                <div class="tab-pane" id="search">
+                    <div class="panel panel-default">
+                        <div class="panel-heading"><h3 class="panel-title">日志查询</h3></div>
+                        <div class="panel-body">
+                            <form id="filter" method="post" action="#" class="form-horizontal">
+                                <div class="form-group">
+                                    <label for="file_path2" class="col-md-2 control-label">文件路径</label>
+                                    <div class="col-md-8">
+                                        <input class="form-control" name="file_path2" id="file_path2" required data-rule-homechk="true" data-msg-required="请输入文件路径">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="key2" class="col-md-2 control-label">关键字</label>
+                                    <div class="col-md-8">
+                                        <input class="form-control" name="key2" id="key2" required data-msg-required="请输入关键字">
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="host2" class="col-md-2 control-label">主机</label>
+                                    <div class="col-md-8">
+                                        <select id="host2" name="host2" class="form-control">
+                                            {% for host in hosts %}
+                                            <option value={{host}}>{{host}}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-md-2 control-label">结果</label>
+                                    <div class="col-md-8">
+                                        <textarea class="form-control" name="res" id="res" rows="8"></textarea>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-offset-2 col-md-8">
+                                        <button class="btn btn-primary" id="flt-btn">查询</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-</div>
-{% endif %}
-<div class="row" style="padding-top: 8%">
-	<div class="col-lg-12">
-		<div class="panel panel-default">
-			<div class="panel-body">
-				<div class="row">
-					<div class="col-lg-8 col-lg-offset-1">
-						<form id="install" method="post" id="install" action="/log_fetch/index" class="form-horizontal">
-						<div class="form-group">
-								<label for="file_path" class="col-md-4 control-label">文件路径</label>
-								 <div class="col-md-6">
-								 <input class="form-control" name="file_path" id="file_path" required data-rule-starchk="true" data-rule-homechk="true" data-msg-required="请输入文件路径"> </div>
-						</div>
-						<div class="form-group">
-						    <label for="host" class="col-md-4 control-label">主机</label>
-                            <div class="col-md-6">
-                                <select id="host" name="host" class="form-control m-b">
-                                   {% for host in hosts%}
-                                    <option value={{host}}>{{host}}</option>
-                                    {%  endfor %}
-                                </select>
-                             </div>
-                        </div>
-                        <div class="form-group">
-							<div class="col-md-6 col-md-offset-6">
-								<button class="btn btn-default">下载</button>
-							</div>
-                        </div>
-					    </div>
-						</form>
-					<!-- /.col-lg-6 (nested) -->
-				</div>
-				<!-- /.row (nested) -->
-			</div>
-			<!-- /.panel-body -->
-		</div>
-		<!-- /.panel -->
-	</div>
-	<div class="col-lg-12">
-		<div class="panel panel-default">
-			<div class="panel-body">
-				<div class="row">
-					<div class="col-lg-8 col-lg-offset-1">
-						<form id="filter" method="post" id="install" action="#" class="form-horizontal">
-						<div class="form-group">
-								<label for="file_path" class="col-md-4 control-label">文件路径</label>
-								 <div class="col-md-6">
-								 <input class="form-control" name="file_path2" id="file_path2" required data-rule-homechk="true" data-msg-required="请输入文件路径"> </div>
-						</div>
-                        <div class="form-group">
-								<label for="file_path" class="col-md-4 control-label">关键字</label>
-								 <div class="col-md-6">
-								 <input class="form-control" name="key2" id="key2" required data-msg-required="请输入关键字"> </div>
-						</div>
-						<div class="form-group">
-						    <label for="host" class="col-md-4 control-label">主机</label>
-                            <div class="col-md-6">
-                                <select id="host2" name="host2" class="form-control m-b">
-                                   {% for host in hosts%}
-                                    <option value={{host}}>{{host}}</option>
-                                    {%  endfor %}
-                                </select>
-                             </div>
-                        </div>
-                         <div class="form-group">
-						    <label class="col-md-4 control-label">结果</label>
-						    <div class="col-md-6">
-						     <textarea class="textarea_set " name="res" id="res" ></textarea>
-						    </div>
-					    </div>
-                        <div class="form-group">
-							<div class="col-md-6 col-md-offset-6">
-								<button class="btn btn-default" id="flt-btn" >过滤</button>
-							</div>
-                        </div>
-					    </div>
-						</form>
-					<!-- /.col-lg-6 (nested) -->
-				</div>
-				<!-- /.row (nested) -->
-			</div>
-			<!-- /.panel-body -->
-		</div>
-		<!-- /.panel -->
-	</div>
 
-	<!-- /.col-lg-12 -->
-</div>
-<!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-<script src="/static/jquery/jquery-1.12.4.min.js"></script>
-<script src="/static/bootstrap/js/bootstrap.js"></script>
-<script src="/static/metisMenu/metisMenu.min.js"></script>
-<!--<script src="https://unpkg.com/vue/dist/vue.js"></script> -->
-<!-- Include all compiled plugins (below), or include individual files as needed -->
-<script src="/static/jquery-validate/jquery.validate.js"></script>
-<script src="/static/jquery-validate/messages_zh.js"></script>
-<script>
-$(function(){
-    //jquery.validate
-	$("#install").validate({
-		onfocusout: function(element) { $(element).valid(); }
-	});
-	$("#filter").validate({
-		submitHandler: function() {
-			//验证通过后 的js代码写在这里
-            var host = $('#host2').val();
-            var file_path = $('#file_path2').val();
-            var key = $('#key2').val();
-            $("#flt-btn").attr("disabled", true);
-            $.ajax({
-        	   type: "POST",
-   		       url: "/log_fetch/filter",
-               dataType: "json",
-   		       data: {"host":host,"file_path":file_path,"key":key},
-   		       traditional: true,
-   		       success: function(data){
-                   //console.log("11111111111"+res);
-                   $('#res').val(data.res);
-                   $("#flt-btn").attr("disabled", false);
-   		         },
-   		        error:function () {
-        	       $('#res').val('过滤失败');
-                   $("#flt-btn").attr("disabled", false);
+    <!-- 脚本部分保持不变 -->
+    <script src="/static/jquery/jquery-1.12.4.min.js"></script>
+    <script src="/static/bootstrap/js/bootstrap.js"></script>
+    <!-- 添加Select2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="/static/jquery-validate/jquery.validate.js"></script>
+    <script src="/static/jquery-validate/messages_zh.js"></script>
+    <script>
+    $(function(){
+        // 初始化Select2
+        $('#host, #host2').select2({
+            theme: 'bootstrap4',
+            width: '100%',
+            placeholder: '请选择主机',
+            allowClear: true,
+            language: {
+                noResults: function() {
+                    return '没有找到匹配的主机';
+                },
+                searching: function() {
+                    return '搜索中...';
                 }
-            });
+            }
+        });
 
-		},
-		onfocusout: function(element) { $(element).valid(); }
-	});
-})
-$.validator.setDefaults({
-	errorElement:'span',
-});
-jQuery.validator.addMethod("starchk", function(value, element) {
-			//var mail = /^[a-z0-9._%-]+@([a-z0-9-]+\.)+[a-z]{2,4}$/;
-			var path = /^.*[*]+.*$/;
-			return this.optional(element) || !path.test(value);
-		}, "禁止输入星号");
-jQuery.validator.addMethod("homechk",
-		function(value, element) {
-			//var mail = /^[a-z0-9._%-]+@([a-z0-9-]+\.)+[a-z]{2,4}$/;
-			var path = /^\/home\/.*$/;
-			var path2 = /^.*\/\.\.+\/.*$/;
-			return this.optional(element) || (path.test(value) && !path2.test(value));
-		}, "只允许下载home路径下文件");
-</script>
+        //jquery.validate
+        $("#install").validate({
+            onfocusout: function(element) { $(element).valid(); }
+        });
+        $("#filter").validate({
+            submitHandler: function() {
+                //验证通过后 的js代码写在这里
+                var host = $('#host2').val();
+                var file_path = $('#file_path2').val();
+                var key = $('#key2').val();
+                $("#flt-btn").attr("disabled", true);
+                $.ajax({
+                    type: "POST",
+                    url: "/log_fetch/filter",
+                    dataType: "json",
+                    data: {"host":host,"file_path":file_path,"key":key},
+                    traditional: true,
+                    success: function(data){
+                        //console.log("11111111111"+res);
+                        $('#res').val(data.res);
+                        $("#flt-btn").attr("disabled", false);
+                    },
+                    error:function () {
+                        $('#res').val('过滤失败');
+                        $("#flt-btn").attr("disabled", false);
+                    }
+                });
+
+            },
+            onfocusout: function(element) { $(element).valid(); }
+        });
+    })
+    $.validator.setDefaults({
+        errorElement:'span',
+    });
+    jQuery.validator.addMethod("starchk", function(value, element) {
+        //var mail = /^[a-z0-9._%-]+@([a-z0-9-]+\.)+[a-z]{2,4}$/;
+        var path = /^.*[*]+.*$/;
+        return this.optional(element) || !path.test(value);
+    }, "禁止输入星号");
+    jQuery.validator.addMethod("homechk",
+        function(value, element) {
+            //var mail = /^[a-z0-9._%-]+@([a-z0-9-]+\.)+[a-z]{2,4}$/;
+            var path = /^\/home\/.*$/;
+            var path2 = /^.*\/\.\.+\/.*$/;
+            return this.optional(element) || (path.test(value) && !path2.test(value));
+        }, "只允许下载home路径下文件");
+    </script>
 </body>
 </html>
