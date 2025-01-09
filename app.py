@@ -1,6 +1,9 @@
 import os,sys,datetime,sqlite3,json
 from functools import wraps
 from flask import Flask,request,render_template,redirect,session,send_from_directory,g,jsonify
+import csv
+from io import StringIO
+from flask import make_response
 
 # 添加URL前缀配置
 URL_PREFIX = '/log_fetch'
@@ -513,6 +516,70 @@ def clean_logs():
         })
     except Exception as e:
         db.rollback()
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
+
+@app.route(URL_PREFIX + '/admin/logs/export', methods=['POST'])
+@login_check
+def export_logs():
+    db = get_db()
+    user = db.execute('SELECT is_admin FROM users WHERE username = ?',
+                     (session["username"],)).fetchone()
+    if not user['is_admin']:
+        return jsonify({"error": "Unauthorized"}), 403
+    
+    try:
+        months = int(request.args.get('months', 1))
+        target_date = (datetime.datetime.now() - datetime.timedelta(days=30*months)).strftime('%Y-%m-%d')
+        
+        # 构建查询条件
+        conditions = ["date(timestamp) >= date(?)"]
+        params = [target_date]
+        
+        # 添加可选的过滤条件
+        if request.form.get('username'):
+            conditions.append("username = ?")
+            params.append(request.form['username'])
+        
+        if request.form.get('host'):
+            conditions.append("host = ?")
+            params.append(request.form['host'])
+        
+        # 执行查询
+        sql = '''
+            SELECT timestamp, username, host, operation_type, 
+                   COALESCE(search_key, '-') as search_key, file_path
+            FROM operation_logs
+            WHERE ''' + " AND ".join(conditions) + '''
+            ORDER BY timestamp DESC
+        '''
+        
+        logs = db.execute(sql, params).fetchall()
+        
+        # 创建CSV输出
+        si = StringIO()
+        writer = csv.writer(si)
+        writer.writerow(['时间', '用户名', '主机', '操作类型', '搜索关键字', '文件路径'])
+        
+        for log in logs:
+            writer.writerow([
+                log['timestamp'],
+                log['username'],
+                log['host'],
+                '下载' if log['operation_type'] == 'download' else '搜索',
+                log['search_key'],
+                log['file_path']
+            ])
+        
+        output = make_response(si.getvalue())
+        output.headers["Content-Disposition"] = f"attachment; filename=logs_{months}m_{datetime.datetime.now().strftime('%Y%m%d')}.csv"
+        output.headers["Content-type"] = "text/csv"
+        output.headers["Content-Encoding"] = "utf-8-sig"  # 添加BOM，解决Excel打开中文乱码
+        return output
+        
+    except Exception as e:
         return jsonify({
             "status": "error",
             "message": str(e)

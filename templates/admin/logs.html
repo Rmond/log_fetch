@@ -119,6 +119,17 @@
                         <button type="button" class="btn btn-danger btn-sm" id="cleanLogsBtn">
                             <i class="fa fa-trash"></i> 清理历史日志
                         </button>
+                        <div class="btn-group">
+                            <button type="button" class="btn btn-success btn-sm dropdown-toggle" data-toggle="dropdown">
+                                <i class="fa fa-download"></i> 导出日志 <span class="caret"></span>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a href="javascript:;" data-months="1">最近1个月</a></li>
+                                <li><a href="javascript:;" data-months="3">最近3个月</a></li>
+                                <li><a href="javascript:;" data-months="6">最近6个月</a></li>
+                                <li><a href="javascript:;" data-months="12">最近1年</a></li>
+                            </ul>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -267,6 +278,40 @@ $(document).ready(function() {
                 alert('清理操作失败，请稍后重试');
             }
         });
+    });
+
+    // 导出日志功能
+    $('.dropdown-menu a').click(function(e) {
+        e.preventDefault();
+        var months = $(this).data('months');
+        var url = '/log_fetch/admin/logs/export?months=' + months;
+        
+        // 创建一个隐藏的 form 来提交导出请求
+        var $form = $('<form>')
+            .attr('method', 'POST')
+            .attr('action', url)
+            .css('display', 'none');
+
+        // 添加当前的过滤条件
+        if($('#username').val()) {
+            $form.append($('<input>').attr({
+                type: 'hidden',
+                name: 'username',
+                value: $('#username').val()
+            }));
+        }
+        if($('#host').val()) {
+            $form.append($('<input>').attr({
+                type: 'hidden',
+                name: 'host',
+                value: $('#host').val()
+            }));
+        }
+
+        // 添加到页面并提交
+        $('body').append($form);
+        $form.submit();
+        $form.remove();
     });
 });
 </script>
